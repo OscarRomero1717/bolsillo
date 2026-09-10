@@ -1,0 +1,41 @@
+# Java / Maven
+target/
+.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# SQLite (persistencia local, no versionar datos)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+apps/backend/data/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+.cache/
+coverage/
+*.ngsw.json
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# OS / env
+.env
+.env.local
+*.log
+
+# Notas locales de trabajo (no forman parte de la entrega)
+docs/cursor.md
+docs/plan-ejecucion.md
