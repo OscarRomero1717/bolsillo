@@ -104,3 +104,11 @@ Plantilla para la oral; se concreta cuando exista código:
 **Output IA:** Enlaces quitados del README; ambos archivos en `.gitignore`; `ia.md` ya no apunta a `cursor.md`.
 **Validación humana:** La prueba sigue cubierta: `docs/ia.md` + skill + agente sí se versionan.
 **Decisión:** Aceptado
+
+## [2026-09-10 11:10] — Infrastructure
+
+**Contexto:** Paso 1.1 — generar Spring Boot (Web, Data JPA, Validation, sin H2) en `apps/backend`.
+**Prompt resumido:** Scaffold desde start.spring.io, Java 21, paquete `com.bolsillo.ahorro`, sin H2.
+**Output IA:** Initializr por defecto ofreció Boot `4.1.1.RELEASE` (no está en Maven Central) y solo línea 4.x (ya no genera Boot 3). El starter `web` en Boot 4 se llama `spring-boot-starter-webmvc`.
+**Validación humana:** Se aceptó Boot **4.1.1** (sin sufijo RELEASE) porque 3.5.6 responde 400 en start.spring.io. Java 21 en el `pom` (JDK local 25; 21 es más portable). Sin H2. `mvn -q -DskipTests compile` verde. No se corrió `spring-boot:run` (sin driver SQL; eso es 1.2).
+**Decisión:** Modificado
