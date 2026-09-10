@@ -112,3 +112,33 @@ Plantilla para la oral; se concreta cuando exista código:
 **Output IA:** Initializr por defecto ofreció Boot `4.1.1.RELEASE` (no está en Maven Central) y solo línea 4.x (ya no genera Boot 3). El starter `web` en Boot 4 se llama `spring-boot-starter-webmvc`.
 **Validación humana:** Se aceptó Boot **4.1.1** (sin sufijo RELEASE) porque 3.5.6 responde 400 en start.spring.io. Java 21 en el `pom` (JDK local 25; 21 es más portable). Sin H2. `mvn -q -DskipTests compile` verde. No se corrió `spring-boot:run` (sin driver SQL; eso es 1.2).
 **Decisión:** Modificado
+
+## [2026-09-10 11:14] — Infrastructure
+
+**Contexto:** Paso 1.2 — SQLite en el `pom.xml`.
+**Prompt resumido:** Añadir `sqlite-jdbc` y `hibernate-community-dialects` y que compile.
+**Output IA:** Las dos dependencias sin versión explícita (el BOM de Boot las alinea).
+**Decisión:** Aceptado
+
+## [2026-09-10 11:21] — Infrastructure
+
+**Contexto:** Paso 1.3 — configuración SQL (`application.yml`, `schema.sql`, tests).
+**Prompt resumido:** YAML a SQLite, `ddl-auto: none`, scripts SQL, DB de test aparte.
+**Output IA:** `application.properties` sustituido por YAML; `schema.sql` solo con comentarios.
+**Decisión:** Modificado
+
+## [2026-09-10 11:26] — Docs
+
+**Contexto:** Paso 1.4 — paquetes Java vacíos del hexagonal.
+**Prompt resumido:** Crear domain/application/infrastructure/interfaces sin clases de negocio.
+**Output IA:** Un `package-info.java` por paquete (Git no versiona carpetas vacías).
+**Decisión:** Aceptado
+
+## [2026-09-10 11:28] — Infrastructure
+
+**Contexto:** Paso 1.5 — CORS mínimo para Angular.
+**Prompt resumido:** Permitir solo `http://localhost:4200`, GET/POST/OPTIONS, header Content-Type, rutas `/api/**`.
+**Output IA:** `WebConfig` con `WebMvcConfigurer.addCorsMappings`.
+**Validación humana:** Sin Spring Security y sin `allowCredentials`. Origen único (no `*`). Todavía no hay endpoints; CORS queda listo para el frontend.
+**Decisión:** Aceptado
+
