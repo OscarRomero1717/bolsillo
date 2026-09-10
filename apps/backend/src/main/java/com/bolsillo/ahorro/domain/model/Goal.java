@@ -49,6 +49,21 @@ public final class Goal {
                 0L);
     }
 
+    public static Goal rehydrate(
+            GoalId id,
+            GoalName name,
+            Money targetAmount,
+            Money currentAmount,
+            GoalStatus status,
+            long version) {
+        Objects.requireNonNull(id, "id is required");
+        Objects.requireNonNull(name, "name is required");
+        Objects.requireNonNull(targetAmount, "targetAmount is required");
+        Objects.requireNonNull(currentAmount, "currentAmount is required");
+        Objects.requireNonNull(status, "status is required");
+        return new Goal(id, name, targetAmount, currentAmount, status, version);
+    }
+
     public GoalId id() {
         return id;
     }

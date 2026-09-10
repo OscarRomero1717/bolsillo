@@ -21,6 +21,25 @@ class GoalCreateTest {
     }
 
     @Test
+    void rehydrateRestoresPersistedStateWithoutChangingRules() {
+        Goal original = Goal.create("Viaje", Money.of("100"));
+        original.contribute(Money.of("40"));
+
+        Goal restored = Goal.rehydrate(
+                original.id(),
+                original.name(),
+                original.targetAmount(),
+                original.currentAmount(),
+                original.status(),
+                3L);
+
+        assertThat(restored.id()).isEqualTo(original.id());
+        assertThat(restored.currentAmount().amount()).isEqualByComparingTo("40.00");
+        assertThat(restored.status()).isEqualTo(GoalStatus.OPEN);
+        assertThat(restored.version()).isEqualTo(3L);
+    }
+
+    @Test
     void createRejectsZeroTarget() {
         assertThatThrownBy(() -> Goal.create("Viaje", Money.of("0")))
                 .isInstanceOf(DomainException.class)
