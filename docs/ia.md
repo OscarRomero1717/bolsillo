@@ -139,6 +139,27 @@ Plantilla para la oral; se concreta cuando exista código:
 **Contexto:** Paso 1.5 — CORS mínimo para Angular.
 **Prompt resumido:** Permitir solo `http://localhost:4200`, GET/POST/OPTIONS, header Content-Type, rutas `/api/**`.
 **Output IA:** `WebConfig` con `WebMvcConfigurer.addCorsMappings`.
-**Validación humana:** Sin Spring Security y sin `allowCredentials`. Origen único (no `*`). Todavía no hay endpoints; CORS queda listo para el frontend.
+**Decisión:** Aceptado
+
+## [2026-09-10 11:45] — Angular
+
+**Contexto:** Paso 1.6 — scaffold Angular standalone + strict.
+**Prompt resumido:** `ng new` en `apps/frontend`, routing, CSS, sin SSR, carpetas feature-first, `environment.apiUrl`.
+**Output IA:** Angular 21 (estilo de archivos 2016). `npm install` falló (`edgesOut`) porque el registry de usuario apunta a Artifactory corporativo y hay un bug de npm 10.9 con peers de Vitest.
+**Decisión:** Modificado
+
+## [2026-09-10 13:13] — Domain
+
+**Contexto:** Paso 2.1 — value objects uno a uno.
+**Prompt resumido:** Money, GoalId, GoalName, GoalStatus, Contribution; tests sin Spring.
+**Output IA:** Records Java 21; Money con `BigDecimal` escala 2.
+**Decisión:** Aceptado
+
+## [2026-09-10 13:18] — Domain
+
+**Contexto:** Paso 2.2 — excepciones y eventos, sin lógica de abono.
+**Prompt resumido:** DomainException, ContributionNotAllowedException, DomainEvent, GoalUpdated, GoalCompleted.
+**Output IA:** Jerarquía de excepciones con códigos; records de eventos.
+**Validación humana:** Todavía no existe `Goal.contribute()`. Cero Spring en `domain`. `mvn compile` verde.
 **Decisión:** Aceptado
 
