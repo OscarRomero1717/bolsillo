@@ -96,8 +96,6 @@ Mínimo dos; hay tres usados de verdad.
 
 **Adapter.** JPA, SSE y REST están en el borde. El hexágono es puertos adentro, adapters afuera.
 
-No hay Strategy ni Factory de persistencia: no había variación que las pidiera.
-
 ---
 
 ## Tiempo real
