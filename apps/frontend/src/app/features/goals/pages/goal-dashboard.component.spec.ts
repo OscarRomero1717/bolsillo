@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../../../environments/environment';
+import { EVENT_SOURCE_FACTORY } from '../data/goal.sse';
 import { Goal } from '../models/goal.model';
 import { GoalDashboard } from './goal-dashboard.component';
 
@@ -30,7 +31,19 @@ describe('GoalDashboard', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GoalDashboard],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        {
+          provide: EVENT_SOURCE_FACTORY,
+          useValue: (url: string) =>
+            ({
+              url,
+              addEventListener: () => undefined,
+              close: () => undefined,
+            }) as unknown as EventSource,
+        },
+      ],
     });
   });
 

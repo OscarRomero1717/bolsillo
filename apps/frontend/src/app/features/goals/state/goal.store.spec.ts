@@ -40,19 +40,7 @@ describe('GoalStore', () => {
     expect(store.error()).toBeNull();
   });
 
-  it('contribute replaces the matching goal in the list', () => {
-    store.load();
-    http.expectOne(`${environment.apiUrl}/goals`).flush([openGoal]);
-
-    const updated: Goal = { ...openGoal, currentAmount: 70, progressPercent: 70, version: 2 };
-    store.contribute('g1', 30);
-    http.expectOne(`${environment.apiUrl}/goals/g1/contributions`).flush(updated);
-
-    expect(store.goals()).toEqual([updated]);
-    expect(store.completedGoal()).toBeNull();
-  });
-
-  it('contribute sets completedGoal when status is COMPLETED', () => {
+  it('contribute replaces the matching goal but does not open the dialog', () => {
     store.load();
     http.expectOne(`${environment.apiUrl}/goals`).flush([openGoal]);
 
@@ -65,15 +53,40 @@ describe('GoalStore', () => {
     };
     store.contribute('g1', 60);
     http.expectOne(`${environment.apiUrl}/goals/g1/contributions`).flush(completed);
+
+    expect(store.goals()).toEqual([completed]);
+    expect(store.completedGoal()).toBeNull();
+  });
+
+  it('goal-updated from the stream replaces that goal', () => {
+    store.load();
+    http.expectOne(`${environment.apiUrl}/goals`).flush([openGoal]);
+
+    const updated: Goal = { ...openGoal, currentAmount: 70, progressPercent: 70, version: 2 };
+    store.applyStreamMessage({ type: 'goal-updated', goal: updated });
+
+    expect(store.goals()).toEqual([updated]);
+    expect(store.completedGoal()).toBeNull();
+  });
+
+  it('goal-completed from the stream updates the list and opens the dialog', () => {
+    store.load();
+    http.expectOne(`${environment.apiUrl}/goals`).flush([openGoal]);
+
+    const completed: Goal = {
+      ...openGoal,
+      currentAmount: 100,
+      progressPercent: 100,
+      status: 'COMPLETED',
+      version: 2,
+    };
+    store.applyStreamMessage({ type: 'goal-completed', goal: completed });
 
     expect(store.goals()[0].status).toBe('COMPLETED');
     expect(store.completedGoal()).toEqual(completed);
   });
 
   it('dismissCompleted clears the completedGoal signal', () => {
-    store.load();
-    http.expectOne(`${environment.apiUrl}/goals`).flush([openGoal]);
-
     const completed: Goal = {
       ...openGoal,
       currentAmount: 100,
@@ -81,8 +94,7 @@ describe('GoalStore', () => {
       status: 'COMPLETED',
       version: 2,
     };
-    store.contribute('g1', 60);
-    http.expectOne(`${environment.apiUrl}/goals/g1/contributions`).flush(completed);
+    store.applyStreamMessage({ type: 'goal-completed', goal: completed });
 
     store.dismissCompleted();
     expect(store.completedGoal()).toBeNull();

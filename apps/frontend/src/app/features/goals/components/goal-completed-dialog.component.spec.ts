@@ -1,7 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { environment } from '../../../../environments/environment';
 import { Goal } from '../models/goal.model';
 import { GoalStore } from '../state/goal.store';
 import { GoalCompletedDialog } from './goal-completed-dialog.component';
@@ -24,16 +23,14 @@ describe('GoalCompletedDialog', () => {
     });
   });
 
-  it('stays closed until a contribution completes a goal, then closes on Cerrar', () => {
+  it('opens when the stream reports a completed goal, then closes on Cerrar', () => {
     const fixture = TestBed.createComponent(GoalCompletedDialog);
     const store = TestBed.inject(GoalStore);
-    const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).querySelector('[role="dialog"]')).toBeNull();
 
-    store.contribute('g1', 60);
-    http.expectOne(`${environment.apiUrl}/goals/g1/contributions`).flush(completed);
+    store.applyStreamMessage({ type: 'goal-completed', goal: completed });
     fixture.detectChanges();
 
     const host = fixture.nativeElement as HTMLElement;
@@ -46,6 +43,5 @@ describe('GoalCompletedDialog', () => {
 
     expect(host.querySelector('[role="dialog"]')).toBeNull();
     expect(store.completedGoal()).toBeNull();
-    http.verify();
   });
 });
