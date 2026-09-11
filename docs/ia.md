@@ -1,165 +1,152 @@
-# Gobernanza de IA — Bolsillo de Ahorro Programado
+# Gobernanza de IA
 
-Registro del uso de herramientas de IA durante el desarrollo (enfoque AI-First).
+La IA (Cursor) ayudó a escribir código y docs. **No decide arquitectura.** Cada bloque se revisa: se acepta, se cambia o se tira. Este archivo es la auditoría que pide la prueba. Los chats completos no se suben.
 
-Este archivo es el **único** entregable de auditoría de IA que pide la prueba (`docs/ia.md`). Aquí están el skill, el agente, los trade-offs, el criterio propio vs. IA y el AI_LOG. Los chats completos no se versionan.
+Herramienta: **Cursor**. Contratos versionados:
 
-Herramienta principal: **Cursor**. El skill y el agente versionados están en `.cursor/`. Notas internas de flujo de trabajo no se publican.
-
----
-
-## 1. Skill / prompt reutilizable
-
-No se guardan todos los prompts de cada sesión. Se versiona **un** skill con contrato estable.
-
-| Campo | Valor |
-|---|---|
-| Nombre | `generate-domain-test` |
-| Archivo | `.cursor/skills/generate-domain-test/SKILL.md` |
-| Para qué | Automatizar tests de invariantes de un aggregate |
-| Input | Aggregate, reglas, eventos, códigos de excepción |
-| Output | JUnit 5 + AssertJ, sin Spring ni JPA |
-| Qué evita | Copiar un prompt ad hoc distinto en cada regla de `contribute()` |
-
-**Prompt resumido (el que se reutiliza):** generar tests de dominio dado un caso de uso, una regla por test, incluyendo el evento `GoalCompleted`.
+| Qué | Dónde | Para qué |
+| --- | --- | --- |
+| Skill | `.cursor/skills/generate-domain-test/SKILL.md` | Tests de dominio repetibles |
+| Agente | `.cursor/agents/architecture-reviewer.md` | Que el hexágono no se rompa |
+| Esta bitácora | `docs/ia.md` | Prompt resumido + decisión, no el log entero |
 
 ---
 
-## 2. Agente
+## Skill
 
-| Campo | Valor |
-|---|---|
-| Nombre | `architecture-reviewer` |
-| Archivo | `.cursor/agents/architecture-reviewer.md` |
-| Rol | Auditar que las reglas no se filtren a Spring/Angular |
-| Rechaza | Spring/JPA en `domain`, `any`, lógica de abono en controller, WS/NgRx/Kafka no pedidos |
-| Cuándo | Tras cada bloque de capa (dominio, REST, SSE, UI) |
+Un **skill** es un prompt reutilizable con contrato: mismo input → mismo tipo de output. No es “el chat de ayer”.
 
----
+`generate-domain-test`:
 
-## 3. Trade-offs de gobernanza (por qué no un dump de prompts)
+| | |
+| --- | --- |
+| **Input** | Aggregate (`Goal.contribute`), invariantes, eventos, códigos de excepción |
+| **Output** | JUnit 5 + AssertJ, **una regla por test**, sin Spring ni JPA |
+| **Qué evita** | Un prompt distinto cada vez que se añade una regla al abono |
 
-| Decisión | Qué se gana | Qué se pierde |
-|---|---|---|
-| Un skill, no 20 prompts sueltos | La prueba pide ≥1 skill demostrable; se puede abrir el archivo en la oral | Menos “histórico de ingeniería de prompt” |
-| AI_LOG con prompt **resumido** | Cumple bitácora sin secretos ni ruido | No se reproduce el chat literal |
-| Notas de Cursor/plan locales, no en Git | La entrega solo lleva `ia.md` + skill/agente | El flujo interno no es visible en el clon público |
-| Código de dominio a mano; boilerplate con IA | Se puede defender `Goal.contribute()` como criterio propio | Más lento al inicio |
+Se usó para los tests de `GoalContributeTest` (monto ≤ 0, meta cerrada, superar objetivo, evento al 100%). El skill **no** genera MockMvc ni pone la regla en el test.
+
+**Qué decir:** *Tengo un skill porque los invariantes se testean igual siempre. Si mañana hay otra regla, no improviso el prompt.*
 
 ---
 
-## 4. Código propio vs. generado (se actualiza al implementar)
+## Agente
 
-| Pieza | Origen previsto | Nota |
-|---|---|---|
-| `Goal.contribute()` e invariantes | Propio / revisado línea a línea | No aceptar ifs de negocio en el controller |
-| Tests de dominio | Skill `generate-domain-test`, luego revisión humana | Deben fallar si se mueve la regla |
-| Mapper JPA, DTOs, YAML | IA, con revisión | Teatro si el dominio queda mal |
-| Store SSE Angular | Mixto | Tipado estricto; cero `any` |
-| `arquitectura.md` / este log | Mixto | Las 4 preguntas de arquitectura se defienden en oral |
+Un **agente** es un revisor con reglas fijas. No escribe el feature: **audita** el diff.
 
----
+`architecture-reviewer` rechaza:
 
-## 5. Rechazos previstos (elegir 2–3 con diff real al cerrar)
+- Spring o JPA dentro de `domain/`
+- `@Entity` en `Goal`
+- Lógica de abono o del 100% en el controller
+- `any` en TypeScript
+- WebSocket, NgRx, Kafka, microservicios, JWT si nadie los pidió
+- Usar el `CHECK` SQL como dueño de la regla
 
-Plantilla para la oral; se concreta cuando exista código:
-
-1. Microservicios + broker → un solo bounded context, 10 h.
-2. `any` en `EventSource` → rompe TypeScript strict.
-3. Validación solo en el controller → el dominio quedaría bypasseable.
-4. WebSocket + STOMP → el write ya es REST; SSE basta.
-5. NgRx → un store de signals cubre listado + diálogo.
-6. `@Entity` = `Goal` de dominio → acopla Hibernate al invariante.
+**Qué decir:** *El skill genera. El agente veta. Gobernanza es esa separación: producir con contrato y revisar con lista, no pegar lo que salga del chat.*
 
 ---
 
-## Plantilla de entrada
+## Gobernanza (por qué no todo el log)
 
-```markdown
-## [YYYY-MM-DD HH:mm] — {Área: Domain|Application|Infrastructure|Api|Angular|DevOps|Docs}
+| Decisión | Por qué |
+| --- | --- |
+| Un skill, no 20 prompts | Se abre un archivo en la oral y se entiende |
+| Bitácora **resumida** (estas entradas) | Cumple auditoría; no hay secretos ni 40 pasos de scaffolding |
+| Chats fuera de Git | El clon público no es un dump de Cursor |
+| Dominio revisado a mano | Puedo abrir `Goal.contribute()` y defender cada `if` |
 
-**Contexto:** Qué problema se resolvía.
-**Prompt resumido:** Intención de la solicitud a la IA (sin secretos ni credenciales).
-**Output IA:** Qué generó o propuso la IA.
-**Validación humana:** Qué se revisó, cambió o rechazó y por qué.
-**Decisión:** Aceptado | Rechazado | Modificado
-```
+Escalar carga o “subir todos los prompts” no demuestra criterio. Demuestra volumen.
 
 ---
 
-## Entradas
+## Código propio vs generado
 
-## [2026-09-10 10:48] — Docs
+| Pieza | Origen | Nota |
+| --- | --- | --- |
+| `Goal.contribute()` e invariantes | Propio / línea a línea | La IA no manda el `if` |
+| Tests de dominio | Skill + revisión | Deben fallar si la regla se mueve al controller |
+| Mapper JPA, DTOs, YAML, README | IA, revisado | Teatro si el dominio está mal |
+| Store + SSE Angular | Mixto | Tipos explícitos; cero `any` |
+| Diálogo 100% | Mixto, **corregido** | No se abre con el POST; se abre con `goal-completed` |
+| `%` en API | Mixto, **corregido** | Nunca 100% si la meta sigue `OPEN` |
 
-**Contexto:** Paso 0.2 del playbook — repo fuera de Facilities Nexus, docs de la prueba y gobernanza de IA sin volcar todos los prompts.
-**Prompt resumido:** Crear estructura pública con `arquitectura.md`, `ia.md` tipo AI_LOG (skill, agente, trade-offs, plantilla, entradas), `cursor.md` solo como mapa del IDE, y un skill + agente versionados. Cumplir que la auditoría viva en `ia.md`.
-**Output IA:** Árbol `apps/`, `docs/`, `.cursor/skills/generate-domain-test`, `.cursor/agents/architecture-reviewer`; README y `.gitignore`; esqueleto de arquitectura opción B; este log con una entrada.
-**Validación humana:** Skill y agente son de este dominio (Goal/SSE), no Identity/JWT. Aún no hay código de aplicación. `cursor.md` y el plan de ejecución se quedaron locales (no van en el clon público).
+---
+
+## Rechazos (los que cuento)
+
+### 1. Microservicios + broker
+
+La IA (y la opción C) encajan “evento” con Kafka y otro proceso. Un abono y un aviso no son dos sistemas. Quedó Observer local (`ApplicationEventPublisher` → `GoalEventSseListener` → SSE).
+
+### 2. WebSocket / `any` en el stream
+
+WebSocket es bidireccional; el cliente ya escribe por REST. SSE basta. En Angular no hay `any` en el payload: unión `GoalUpdated | GoalCompleted` y factory de `EventSource` para tests.
+
+### 3. Regla en el controller o `@Entity` = dominio
+
+Validar el restante solo en HTTP o poner `@Entity` en `Goal` acopla Spring/Hibernate al invariante. La regla está en `contribute()`. El `@Entity` es `GoalJpaEntity`; se reconstruye con `rehydrate`.
+
+**Extra (bug, no estilo):** con objetivo `1_000_001` y acumulado `1_000_000` la UI pintaba 100% y el form exigía mínimo 1 → 422. Se corrigió: porcentaje hacia abajo (máx. 99 si `OPEN`) y el form usa el restante.
+
+---
+
+## Bitácora (solo lo que aporta)
+
+No está cada `git add` ni cada paquete vacío. Están las decisiones que se defienden.
+
+### 2026-09-10 — Arquitectura y gobernanza
+
+**Contexto:** Tres alternativas; hay que versionar skill + agente + bitácora, no el chat.
+**Prompt resumido:** Elegir arquitectura, crear skill de tests de dominio y agente reviewer.
+**Output IA:** Hexagonal lean; esqueletos en `.cursor/` y este archivo.
+**Validación:** Se aceptó B. Se rechazó C (microservicios). `cursor.md` y el playbook quedan locales.
 **Decisión:** Aceptado
 
-## [2026-09-10 10:58] — Docs
+### 2026-09-10 — Spring Boot 4
 
-**Contexto:** Quitar del README (y de Git) el plan de ejecución y la guía de Cursor.
-**Prompt resumido:** Manejar esos MD en local; no subirlos. La entrega pública de docs queda en arquitectura + ia.
-**Output IA:** Enlaces quitados del README; ambos archivos en `.gitignore`; `ia.md` ya no apunta a `cursor.md`.
-**Validación humana:** La prueba sigue cubierta: `docs/ia.md` + skill + agente sí se versionan.
-**Decisión:** Aceptado
-
-## [2026-09-10 11:10] — Infrastructure
-
-**Contexto:** Paso 1.1 — generar Spring Boot (Web, Data JPA, Validation, sin H2) en `apps/backend`.
-**Prompt resumido:** Scaffold desde start.spring.io, Java 21, paquete `com.bolsillo.ahorro`, sin H2.
-**Output IA:** Initializr por defecto ofreció Boot `4.1.1.RELEASE` (no está en Maven Central) y solo línea 4.x (ya no genera Boot 3). El starter `web` en Boot 4 se llama `spring-boot-starter-webmvc`.
-**Validación humana:** Se aceptó Boot **4.1.1** (sin sufijo RELEASE) porque 3.5.6 responde 400 en start.spring.io. Java 21 en el `pom` (JDK local 25; 21 es más portable). Sin H2. `mvn -q -DskipTests compile` verde. No se corrió `spring-boot:run` (sin driver SQL; eso es 1.2).
+**Contexto:** Scaffold del backend.
+**Prompt resumido:** Java 21, Web + JPA + Validation, sin H2.
+**Output IA:** Initializr en línea 4.x; `4.1.1.RELEASE` no resolvía en Maven Central.
+**Validación:** Boot **4.1.1** (sin `RELEASE`), starter `webmvc`. No se forzó Boot 3 a mano contra el Initializr.
 **Decisión:** Modificado
 
-## [2026-09-10 11:14] — Infrastructure
+### 2026-09-10 — Dominio `contribute()`
 
-**Contexto:** Paso 1.2 — SQLite en el `pom.xml`.
-**Prompt resumido:** Añadir `sqlite-jdbc` y `hibernate-community-dialects` y que compile.
-**Output IA:** Las dos dependencias sin versión explícita (el BOM de Boot las alinea).
+**Contexto:** Invariantes del abono.
+**Prompt resumido:** Una regla y un test cada vez; skill de dominio; sin Spring.
+**Output IA:** `Goal.contribute()` + eventos.
+**Validación:** Cero `org.springframework` en `domain`. Las reglas no están en el controller.
 **Decisión:** Aceptado
 
-## [2026-09-10 11:21] — Infrastructure
+### 2026-09-10 — JPA adapter
 
-**Contexto:** Paso 1.3 — configuración SQL (`application.yml`, `schema.sql`, tests).
-**Prompt resumido:** YAML a SQLite, `ddl-auto: none`, scripts SQL, DB de test aparte.
-**Output IA:** `application.properties` sustituido por YAML; `schema.sql` solo con comentarios.
+**Contexto:** Persistencia SQLite.
+**Prompt resumido:** Entidad en infrastructure, no en `Goal`.
+**Output IA:** `GoalJpaEntity` + mapper + `rehydrate`.
+**Validación:** `Goal` sin `@Entity`. CHECK en SQL es red de seguridad.
+**Decisión:** Aceptado
+
+### 2026-09-10 — SSE, no WebSocket
+
+**Contexto:** Aviso a otras pestañas.
+**Prompt resumido:** REST escribe; stream avisa `goal-updated` / `goal-completed`.
+**Output IA:** `SseHub`, listener, `GET /api/goals/stream`, `EventSource` en Angular.
+**Validación:** El diálogo **no** se abre con el JSON del POST (eso dejaba ciega la otra pestaña). Se abre con el evento del stream.
 **Decisión:** Modificado
 
-## [2026-09-10 11:26] — Docs
+### 2026-09-10 — 100% prematuro
 
-**Contexto:** Paso 1.4 — paquetes Java vacíos del hexagonal.
-**Prompt resumido:** Crear domain/application/infrastructure/interfaces sin clases de negocio.
-**Output IA:** Un `package-info.java` por paquete (Git no versiona carpetas vacías).
-**Decisión:** Aceptado
-
-## [2026-09-10 11:28] — Infrastructure
-
-**Contexto:** Paso 1.5 — CORS mínimo para Angular.
-**Prompt resumido:** Permitir solo `http://localhost:4200`, GET/POST/OPTIONS, header Content-Type, rutas `/api/**`.
-**Output IA:** `WebConfig` con `WebMvcConfigurer.addCorsMappings`.
-**Decisión:** Aceptado
-
-## [2026-09-10 11:45] — Angular
-
-**Contexto:** Paso 1.6 — scaffold Angular standalone + strict.
-**Prompt resumido:** `ng new` en `apps/frontend`, routing, CSS, sin SSR, carpetas feature-first, `environment.apiUrl`.
-**Output IA:** Angular 21 (estilo de archivos 2016). `npm install` falló (`edgesOut`) porque el registry de usuario apunta a Artifactory corporativo y hay un bug de npm 10.9 con peers de Vitest.
+**Contexto:** UI en 100% con meta `OPEN`; el último peso de 1 fallaba.
+**Prompt resumido:** Entender el 422 y el porcentaje.
+**Output IA / código:** HALF_UP pintaba 100% antes de completar.
+**Validación:** `DOWN` y tope 99 si `OPEN`; restante visible; `max` del form = restante.
 **Decisión:** Modificado
 
-## [2026-09-10 13:13] — Domain
+### 2026-09-10 — Tests del enunciado
 
-**Contexto:** Paso 2.1 — value objects uno a uno.
-**Prompt resumido:** Money, GoalId, GoalName, GoalStatus, Contribution; tests sin Spring.
-**Output IA:** Records Java 21; Money con `BigDecimal` escala 2.
+**Contexto:** Contratos HTTP y los 4 de UI.
+**Prompt resumido:** Un MockMvc por caso; dashboard, abono inválido sin POST, % de card, diálogo al `goal-completed`.
+**Output IA:** `GoalControllerTest` + `enunciado.spec.ts`.
+**Validación:** `mvn test` y `ng test --watch=false` verdes. Eso no sustituye los tests de dominio.
 **Decisión:** Aceptado
-
-## [2026-09-10 13:18] — Domain
-
-**Contexto:** Paso 2.2 — excepciones y eventos, sin lógica de abono.
-**Prompt resumido:** DomainException, ContributionNotAllowedException, DomainEvent, GoalUpdated, GoalCompleted.
-**Output IA:** Jerarquía de excepciones con códigos; records de eventos.
-**Validación humana:** Todavía no existe `Goal.contribute()`. Cero Spring en `domain`. `mvn compile` verde.
-**Decisión:** Aceptado
-
