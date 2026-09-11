@@ -1,0 +1,13 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <label>
+    Abono
+    <input type="number" formControlName="amount" min="1" step="1" />
+  </label>
+  @if (form.controls.amount.touched && form.controls.amount.invalid) {
+    <p class="hint">El abono debe ser mayor que 0.</p>
+  }
+  @if (visibleError(); as message) {
+    <p class="hint">{{ message }}</p>
+  }
+  <button type="submit" [disabled]="form.invalid">Abonar</button>
+</form>

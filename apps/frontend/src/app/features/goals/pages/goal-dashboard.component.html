@@ -1,5 +1,6 @@
 <section>
   <h2>Tus metas</h2>
+  <app-create-goal-form />
 
   @if (loading()) {
     <p>Cargando metas…</p>
@@ -18,4 +19,5 @@
       <app-goal-card [goal]="goal" />
     }
   </div>
+  <app-goal-completed-dialog />
 </section>

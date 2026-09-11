@@ -1,0 +1,15 @@
+@if (goal(); as completed) {
+  <div class="backdrop" (click)="dismiss()">
+    <div
+      class="panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="completed-title"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 id="completed-title">¡Meta cumplida!</h2>
+      <p>Alcanzaste el 100% de <strong>{{ completed.name }}</strong>.</p>
+      <button type="button" (click)="dismiss()">Cerrar</button>
+    </div>
+  </div>
+}

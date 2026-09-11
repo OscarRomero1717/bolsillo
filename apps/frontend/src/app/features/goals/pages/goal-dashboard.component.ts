@@ -1,10 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { GoalCard } from '../components/goal-card.component';
+import { CreateGoalForm } from '../components/create-goal-form.component';
+import { GoalCompletedDialog } from '../components/goal-completed-dialog.component';
 import { GoalStore } from '../state/goal.store';
 
 @Component({
   selector: 'app-goal-dashboard',
-  imports: [GoalCard],
+  imports: [GoalCard, CreateGoalForm, GoalCompletedDialog],
   templateUrl: './goal-dashboard.component.html',
   styleUrl: './goal-dashboard.component.css',
 })

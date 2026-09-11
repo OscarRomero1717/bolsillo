@@ -59,6 +59,10 @@ export class GoalStore {
     });
   }
 
+  dismissCompleted(): void {
+    this.completedGoalSignal.set(null);
+  }
+
   private fail(err: unknown): void {
     this.errorSignal.set(messageFrom(err));
     this.loadingSignal.set(false);

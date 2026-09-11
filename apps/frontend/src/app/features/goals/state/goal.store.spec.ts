@@ -69,4 +69,22 @@ describe('GoalStore', () => {
     expect(store.goals()[0].status).toBe('COMPLETED');
     expect(store.completedGoal()).toEqual(completed);
   });
+
+  it('dismissCompleted clears the completedGoal signal', () => {
+    store.load();
+    http.expectOne(`${environment.apiUrl}/goals`).flush([openGoal]);
+
+    const completed: Goal = {
+      ...openGoal,
+      currentAmount: 100,
+      progressPercent: 100,
+      status: 'COMPLETED',
+      version: 2,
+    };
+    store.contribute('g1', 60);
+    http.expectOne(`${environment.apiUrl}/goals/g1/contributions`).flush(completed);
+
+    store.dismissCompleted();
+    expect(store.completedGoal()).toBeNull();
+  });
 });

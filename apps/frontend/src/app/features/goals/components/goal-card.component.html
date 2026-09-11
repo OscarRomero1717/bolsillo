@@ -7,4 +7,7 @@
     <div class="fill" [style.width.%]="goal().progressPercent"></div>
   </div>
   <p class="percent">{{ goal().progressPercent }}%</p>
+  @if (goal().status !== 'COMPLETED') {
+    <app-contribution-form [goalId]="goal().id" />
+  }
 </article>
