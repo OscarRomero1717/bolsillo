@@ -15,6 +15,9 @@
 	<description>Bolsillo de Ahorro Programado</description>
 	<properties>
 		<java.version>21</java.version>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.organization>oscarromero1717</sonar.organization>
+		<sonar.projectKey>OscarRomero1717_bolsillo</sonar.projectKey>
 	</properties>
 	<dependencies>
 		<dependency>
