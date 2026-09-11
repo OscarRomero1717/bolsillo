@@ -79,4 +79,4 @@ Con backend y frontend ya arriba.
 | [README del backend](apps/backend/README.md) | Contrato HTTP, códigos de error, paquetes `domain` / `application` / `infrastructure` / `interfaces` |
 | [README del frontend](apps/frontend/README.md) | Signals, REST vs SSE, árbol de `features/goals` |
 
-El skill y el agente versionados están en `.cursor/skills/generate-domain-test/` y `.cursor/agents/architecture-reviewer.md`. El detalle de uso está en `docs/ia.md`.
+Los skills (`.cursor/skills/`) y el agente (`.cursor/agents/architecture-reviewer.md`) se versionan con el repo. El detalle está en `docs/ia.md`.

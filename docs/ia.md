@@ -4,27 +4,53 @@ Herramienta: **Cursor**. Toda la auditoría de IA de esta prueba está en este a
 
 | Artefacto | Ruta |
 | --- | --- |
-| Skill | `.cursor/skills/generate-domain-test/SKILL.md` |
+| Skills | `.cursor/skills/<nombre>/SKILL.md` |
 | Agente | `.cursor/agents/architecture-reviewer.md` |
+
+Los skills de **este repo** (no los personales de `~/.cursor/skills/`) van versionados para que el evaluador los abra en el clon.
 
 ---
 
 ## 1. Skills / prompts automatizados
 
-**Nombre:** `generate-domain-test`  
-**Archivo:** `.cursor/skills/generate-domain-test/SKILL.md`
+Hay **tres**, todos en `.cursor/skills/`. Un skill es un prompt reutilizable con contrato (input → output → prohibiciones). No es el chat de ayer.
 
-Prompt estructurado para no reescribir a mano el mismo tipo de test cada vez que se añade una regla al abono.
+| Skill | Archivo | Qué automatiza |
+| --- | --- | --- |
+| `generate-domain-test` | `.cursor/skills/generate-domain-test/SKILL.md` | Tests JUnit del invariante, sin Spring |
+| `map-problem-detail` | `.cursor/skills/map-problem-detail/SKILL.md` | Excepción de dominio → RFC 7807 + MockMvc |
+| `strict-goal-sse-client` | `.cursor/skills/strict-goal-sse-client/SKILL.md` | SSE tipado, diálogo por stream, cero `any` |
+
+### `generate-domain-test`
 
 | Campo | Contrato |
 | --- | --- |
-| Input | Aggregate y método (`Goal.contribute`), invariantes, eventos (`GoalCompletedEvent`), códigos de excepción |
-| Output | Clase JUnit 5 + AssertJ; **un test por regla** (feliz, borde, evento) |
-| Restricciones | Cero `org.springframework` y `jakarta.persistence`. Cero Mockito sobre el aggregate. No generar MockMvc ni `@SpringBootTest`. |
+| Input | Aggregate (`Goal.contribute`), invariantes, eventos, códigos |
+| Output | JUnit 5 + AssertJ; **un test por regla** |
+| Restricciones | Cero Spring/JPA; cero Mockito sobre el aggregate |
 
-**Uso real:** `GoalContributeTest` — monto ≤ 0, meta `COMPLETED`, `current + amount > target`, cierre exacto al objetivo y emisión de `GoalCompletedEvent` + `GoalUpdatedEvent`.
+**Uso real:** `GoalContributeTest`. Si el test reimplementa el `if` y no llama a `contribute()`, se descarta.
 
-El skill no sustituye revisión: si un test afirma la regla en el propio test y no llama a `contribute()`, se descarta.
+### `map-problem-detail`
+
+| Campo | Contrato |
+| --- | --- |
+| Input | Excepción / regla (no encontrada, restante, `@Version`) |
+| Output | `ApiExceptionHandler` + un MockMvc por status (400/404/409/422) |
+| Restricciones | Sin recalcular el abono en el controller |
+
+**Uso real:** abono 0 → 400; superar restante → 422; id inexistente → 404.
+
+### `strict-goal-sse-client`
+
+| Campo | Contrato |
+| --- | --- |
+| Input | Eventos `goal-updated` / `goal-completed` |
+| Output | `GoalSse` + `GoalStore` (`completedGoal` solo desde el stream) |
+| Restricciones | Cero `any`, cero diálogo en el POST, cero WebSocket |
+
+**Uso real:** dos pestañas; el overlay sale con `goal-completed`.
+
 
 ---
 
