@@ -50,6 +50,8 @@ npx ng test --watch=false
 
 Los tests del backend no tocan el SQLite de desarrollo: usan `bolsillo-test.db`.
 
+En cada push a `main`, GitHub Actions corre esos mismos tests (`.github/workflows/ci.yml`). No hay despliegue.
+
 ## Persistencia
 
 SQLite en archivo: `apps/backend/data/bolsillo.db` (se crea al arrancar; el `.db` no se versiona). La carpeta `data/` sí va en Git (vacía). Esquema y seed: `apps/backend/src/main/resources/schema.sql` y `data.sql`.
