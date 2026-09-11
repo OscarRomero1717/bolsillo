@@ -34,6 +34,6 @@ jobs:
           cache: npm
           cache-dependency-path: apps/frontend/package-lock.json
       - name: Instalar
-        run: npm ci
+        run: npm install
       - name: Tests Angular
         run: npx ng test --watch=false
