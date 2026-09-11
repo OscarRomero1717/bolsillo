@@ -52,7 +52,7 @@ Los tests del backend no tocan el SQLite de desarrollo: usan `bolsillo-test.db`.
 
 ## Persistencia
 
-SQLite en archivo: `apps/backend/data/bolsillo.db` (se crea al arrancar; no se versiona). Esquema y seed: `apps/backend/src/main/resources/schema.sql` y `data.sql`.
+SQLite en archivo: `apps/backend/data/bolsillo.db` (se crea al arrancar; el `.db` no se versiona). La carpeta `data/` sí va en Git (vacía). Esquema y seed: `apps/backend/src/main/resources/schema.sql` y `data.sql`.
 
 ## Demo (8 pasos)
 
