@@ -82,16 +82,42 @@ Con objetivo `1_000_001` y acumulado `1_000_000`, el mapper redondeaba HALF_UP a
 
 No se aceptó `@Entity` en `Goal` ni `any` en el cliente SSE (factory tipada de `EventSource`). Eso lo veta el agente; no se llegó a merge.
 
-### 3.3 Sesiones relevantes (resumen)
+### 3.3 Entradas (AI_LOG)
 
-No está el scaffolding paso a paso.
+No está cada scaffolding. Estas entradas muestran prompt acotado → output → validación humana → decisión.
 
-| Fecha | Tema | IA | Humano | Decisión |
-| --- | --- | --- | --- | --- |
-| 2026-09-10 | Arquitectura | Opción C distribuida | Un módulo hexagonal | Rechazado C |
-| 2026-09-10 | Initializr | `4.1.1.RELEASE` (no resolvía) | Boot **4.1.1** + `webmvc` | Modificado |
-| 2026-09-10 | Dominio | `contribute()` + eventos | Cero Spring en `domain` | Aceptado |
-| 2026-09-10 | JPA | Entidad + mapper | `Goal` ≠ `@Entity` | Aceptado |
-| 2026-09-10 | Tiempo real | Hub + Angular `EventSource` | Diálogo solo por SSE | Modificado |
-| 2026-09-10 | Bug 100% | HALF_UP en el DTO | `DOWN` + restante | Modificado |
-| 2026-09-10 | Tests enunciado | MockMvc + `enunciado.spec.ts` | Verdes; no sustituyen dominio | Aceptado |
+**[2026-09-10] — Docs**  
+**Contexto:** Inicio del repo de entrega (fuera de Facilities Nexus): esqueleto público y gobernanza de IA.  
+**Prompt resumido:** Crear `apps/backend`, `apps/frontend`, `docs/`, `.gitignore`, README, `arquitectura.md` y `ia.md` con plantilla de bitácora; versionar un skill de tests de dominio y un agente reviewer. No volcar chats.  
+**Output IA:** Árbol de carpetas, skill `generate-domain-test`, agente `architecture-reviewer`, este archivo.  
+**Validación humana:** Skill y agente hablan de `Goal`/SSE, no de JWT. `cursor.md` y el playbook quedaron locales (`.gitignore`). Sin código de negocio aún.  
+**Decisión:** Aceptado
+
+**[2026-09-10] — Domain**  
+**Contexto:** Invariantes del abono. Skill `generate-domain-test`.  
+**Prompt resumido:** Implementar `Goal.contribute()` una regla por vez (monto > 0, no `COMPLETED`, no superar objetivo, evento al 100%). Tests JUnit + AssertJ, un test por regla, cero Spring/JPA.  
+**Output IA:** `contribute()` muta `current`/`status` y devuelve `GoalUpdatedEvent` / `GoalCompletedEvent`; `GoalContributeTest`.  
+**Validación humana:** `mvn test` verde. Cero `org.springframework` en `domain`. Las aserciones llaman al aggregate, no reimplementan el `if`.  
+**Decisión:** Aceptado
+
+**[2026-09-10] — Infrastructure**  
+**Contexto:** Persistencia SQLite sin acoplar Hibernate al dominio.  
+**Prompt resumido:** `GoalJpaEntity` en `infrastructure`, mapper, `Goal.rehydrate`. `Goal` no lleva `@Entity`. `schema.sql` con CHECK; `ddl-auto: none`.  
+**Output IA:** Adapter JPA + seed Viaje a Cartagena / Fondo emergencia.  
+**Validación humana:** Dominio sin `jakarta.persistence`. CHECK es red de seguridad, no dueño de la regla.  
+**Decisión:** Aceptado
+
+**[2026-09-10] — Api / Angular**  
+**Contexto:** Aviso a otras pestañas al completar una meta.  
+**Prompt resumido:** REST escribe; SSE (`GET /api/goals/stream`) avisa `goal-updated` y `goal-completed`. El diálogo no se abre con el JSON del POST. Cero `any` en el payload.  
+**Output IA:** `SseHub`, listener, `GoalSse` + `EventSource`; propuesta de WebSocket y de abrir el overlay en el 200 del abono.  
+**Validación humana:** Se rechazó WS (el comando ya es HTTP). El diálogo solo se setea con `goal-completed` del stream para que la segunda pestaña se entere.  
+**Decisión:** Modificado
+
+**[2026-09-10] — Api / Frontend**  
+**Contexto:** Objetivo `1_000_001`, acumulado `1_000_000`, abono `1` → 422; la card pintaba 100% con status `OPEN`.  
+**Prompt resumido:** Entender el 422 y el porcentaje; no mentir el estado en el DTO.  
+**Output IA / código:** `progressPercent` con HALF_UP llegaba a 100% antes de `COMPLETED`; el form exigía mínimo 1.  
+**Validación humana:** Redondeo `DOWN`, tope 99 si `OPEN`, 100 solo si `COMPLETED`; restante en la card; `max` del form = restante. Tests de dominio, MockMvc y UI verdes.  
+**Decisión:** Modificado
+
