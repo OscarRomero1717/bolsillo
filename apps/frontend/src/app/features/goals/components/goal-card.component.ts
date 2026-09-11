@@ -11,4 +11,13 @@ import { Goal } from '../models/goal.model';
 })
 export class GoalCard {
   readonly goal = input.required<Goal>();
+
+  protected remaining(): number {
+    const goal = this.goal();
+    return roundCents(goal.targetAmount - goal.currentAmount);
+  }
+}
+
+function roundCents(value: number): number {
+  return Math.round(value * 100) / 100;
 }

@@ -1,13 +1,19 @@
-<form [formGroup]="form" (ngSubmit)="submit()">
-  <label>
-    Abono
-    <input type="number" formControlName="amount" min="1" step="1" />
-  </label>
-  @if (form.controls.amount.touched && form.controls.amount.invalid) {
+<form class="row" [formGroup]="form" (ngSubmit)="submit()">
+  <div class="actions">
+    <label>
+      Abono
+      <input type="number" formControlName="amount" min="0.01" step="0.01" inputmode="decimal" />
+    </label>
+    <button type="submit" [disabled]="form.invalid || loading()">Abonar</button>
+  </div>
+  @if (form.controls.amount.touched && form.controls.amount.hasError('required')) {
+    <p class="hint">El abono es obligatorio.</p>
+  } @else if (form.controls.amount.touched && form.controls.amount.hasError('min')) {
     <p class="hint">El abono debe ser mayor que 0.</p>
+  } @else if (form.controls.amount.touched && form.controls.amount.hasError('max')) {
+    <p class="hint">El abono no puede superar el restante.</p>
   }
   @if (visibleError(); as message) {
     <p class="hint">{{ message }}</p>
   }
-  <button type="submit" [disabled]="form.invalid">Abonar</button>
 </form>

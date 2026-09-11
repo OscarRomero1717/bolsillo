@@ -1,0 +1,61 @@
+.shell {
+  width: min(var(--max), 100%);
+  margin: 0 auto;
+  padding: calc(0.85rem + env(safe-area-inset-top)) var(--space)
+    calc(1.5rem + env(safe-area-inset-bottom));
+}
+
+.top {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius);
+  background: var(--bg-accent);
+  color: #f6faf7;
+  box-shadow: var(--shadow);
+}
+
+.mark {
+  flex: 0 0 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 0.85rem;
+  background: #c4921a;
+  color: #14241c;
+  font-weight: 700;
+  font-size: 1.15rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.top p {
+  margin: 0.15rem 0 0;
+  color: #c9ddd4;
+  font-size: 0.82rem;
+}
+
+@media (min-width: 640px) {
+  .shell {
+    padding: 1.5rem 1.5rem 2.5rem;
+  }
+
+  .top {
+    padding: 1.1rem 1.25rem;
+  }
+
+  h1 {
+    font-size: 1.45rem;
+  }
+
+  .top p {
+    font-size: 0.95rem;
+  }
+}

@@ -20,6 +20,7 @@ describe('ContributionForm', () => {
   it('disables submit while amount is invalid', () => {
     const fixture = TestBed.createComponent(ContributionForm);
     fixture.componentRef.setInput('goalId', 'g1');
+    fixture.componentRef.setInput('remaining', 1_000_000);
     fixture.detectChanges();
     const button = (fixture.nativeElement as HTMLElement).querySelector('button');
     expect(button?.hasAttribute('disabled')).toBe(true);
@@ -32,6 +33,7 @@ describe('ContributionForm', () => {
   it('posts a contribution', () => {
     const fixture = TestBed.createComponent(ContributionForm);
     fixture.componentRef.setInput('goalId', 'g1');
+    fixture.componentRef.setInput('remaining', 1_000_000);
     const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
@@ -59,6 +61,7 @@ describe('ContributionForm', () => {
   it('shows a 422 Problem Detail under the input', () => {
     const fixture = TestBed.createComponent(ContributionForm);
     fixture.componentRef.setInput('goalId', 'g1');
+    fixture.componentRef.setInput('remaining', 10_000_000);
     const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 

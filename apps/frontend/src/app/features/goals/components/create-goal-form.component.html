@@ -1,18 +1,20 @@
-<form [formGroup]="form" (ngSubmit)="submit()">
+<form class="composer" [formGroup]="form" (ngSubmit)="submit()">
   <h3>Nueva meta</h3>
-  <label>
-    Nombre
-    <input type="text" formControlName="name" autocomplete="off" />
-  </label>
-  @if (form.controls.name.touched && form.controls.name.invalid) {
-    <p class="hint">El nombre es obligatorio.</p>
-  }
-  <label>
-    Objetivo
-    <input type="number" formControlName="targetAmount" min="1" step="1" />
-  </label>
-  @if (form.controls.targetAmount.touched && form.controls.targetAmount.invalid) {
-    <p class="hint">El objetivo debe ser mayor que 0.</p>
-  }
+  <div class="fields">
+    <label>
+      Nombre
+      <input type="text" formControlName="name" autocomplete="off" placeholder="Ej. Viaje" />
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <span class="hint">El nombre es obligatorio.</span>
+      }
+    </label>
+    <label>
+      Objetivo
+      <input type="number" formControlName="targetAmount" min="1" step="1" inputmode="decimal" placeholder="1000000" />
+      @if (form.controls.targetAmount.touched && form.controls.targetAmount.invalid) {
+        <span class="hint">El objetivo debe ser mayor que 0.</span>
+      }
+    </label>
+  </div>
   <button type="submit" [disabled]="form.invalid">Crear</button>
 </form>

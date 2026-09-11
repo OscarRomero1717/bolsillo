@@ -1,9 +1,13 @@
-<section>
-  <h2>Tus metas</h2>
+<section class="dash">
+  <div class="intro">
+    <h2>Tus metas</h2>
+    <p>Crea una meta y abona. El progreso se actualiza al instante.</p>
+  </div>
+
   <app-create-goal-form />
 
   @if (loading()) {
-    <p>Cargando metas…</p>
+    <p class="status-msg">Cargando metas…</p>
   }
 
   @if (error(); as message) {
@@ -11,7 +15,7 @@
   }
 
   @if (!loading() && !error() && goals().length === 0) {
-    <p>no hay metas</p>
+    <p class="empty">no hay metas</p>
   }
 
   <div class="grid">
