@@ -83,4 +83,15 @@ class GoalContributeTest {
         GoalUpdatedEvent updated = (GoalUpdatedEvent) events.get(0);
         assertThat(updated.status()).isEqualTo(GoalStatus.COMPLETED);
     }
+
+    @Test
+    void lastPesoOnMillionPlusOneTargetCompletes() {
+        Goal goal = Goal.create("Viaje", Money.of("1000001"));
+        goal.contribute(Money.of("1000000"));
+
+        goal.contribute(Money.of("1"));
+
+        assertThat(goal.currentAmount().amount()).isEqualByComparingTo("1000001.00");
+        assertThat(goal.status()).isEqualTo(GoalStatus.COMPLETED);
+    }
 }

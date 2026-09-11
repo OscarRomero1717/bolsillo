@@ -1,6 +1,7 @@
 package com.bolsillo.ahorro.interfaces.rest;
 
 import com.bolsillo.ahorro.domain.model.Goal;
+import com.bolsillo.ahorro.domain.model.GoalStatus;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
@@ -27,14 +28,18 @@ public record GoalResponse(
     }
 
     private static int progressPercent(Goal goal) {
+        if (goal.status() == GoalStatus.COMPLETED) {
+            return 100;
+        }
         BigDecimal target = goal.targetAmount().amount();
         if (target.signum() == 0) {
             return 0;
         }
-        return goal.currentAmount()
+        int percent = goal.currentAmount()
                 .amount()
                 .multiply(BigDecimal.valueOf(100))
-                .divide(target, 0, RoundingMode.HALF_UP)
+                .divide(target, 0, RoundingMode.DOWN)
                 .intValue();
+        return Math.min(Math.max(percent, 0), 99);
     }
 }

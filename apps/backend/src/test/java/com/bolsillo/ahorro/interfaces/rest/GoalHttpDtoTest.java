@@ -29,6 +29,26 @@ class GoalHttpDtoTest {
     }
 
     @Test
+    void openGoalAlmostAtTargetDoesNotShow100Percent() {
+        Goal goal = Goal.create("Viaje", Money.of("1000001"));
+        goal.contribute(Money.of("1000000"));
+
+        GoalResponse response = GoalResponse.from(goal);
+
+        assertThat(response.progressPercent()).isEqualTo(99);
+        assertThat(response.status()).isEqualTo("OPEN");
+        assertThat(response.currentAmount()).isEqualByComparingTo("1000000.00");
+    }
+
+    @Test
+    void completedGoalShows100Percent() {
+        Goal goal = Goal.create("Viaje", Money.of("100"));
+        goal.contribute(Money.of("100"));
+
+        assertThat(GoalResponse.from(goal).progressPercent()).isEqualTo(100);
+    }
+
+    @Test
     void rejectsBlankNameAndNonPositiveTarget() {
         CreateGoalRequest request = new CreateGoalRequest("  ", BigDecimal.ZERO);
 
