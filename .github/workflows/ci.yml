@@ -38,12 +38,11 @@ jobs:
       - name: Tests Angular
         run: npx ng test --watch=false
 
-  # Esqueleto: no bloquea el CI. Se salta si no hay SONAR_TOKEN.
-  # Quality gate en false: un smell no pone rojo el Action.
+  # Esqueleto: GitHub no permite `secrets` en el if del job.
+  # Sin token el paso sale 0 y no rompe el CI. Quality gate en false.
   sonar:
     name: SonarCloud (backend)
     needs: backend
-    if: ${{ secrets.SONAR_TOKEN != '' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -61,4 +60,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B test org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.qualitygate.wait=false
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "SONAR_TOKEN no configurado; se omite SonarCloud."
+            exit 0
+          fi
+          mvn -B test org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.qualitygate.wait=false
