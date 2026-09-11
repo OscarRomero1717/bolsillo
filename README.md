@@ -50,9 +50,7 @@ npx ng test --watch=false
 
 Los tests del backend no tocan el SQLite de desarrollo: usan `bolsillo-test.db`.
 
-En cada push a `main`, GitHub Actions corre esos mismos tests (`.github/workflows/ci.yml`). No hay despliegue.
-
-SonarCloud (esqueleto, solo backend): el job se llama si existe el secret `SONAR_TOKEN`. No espera quality gate. En [sonarcloud.io](https://sonarcloud.io) crea el proyecto, copia **organization** y **project key** a `apps/backend/pom.xml` (`sonar.organization`, `sonar.projectKey`) y en GitHub: **Settings → Secrets → Actions → `SONAR_TOKEN`**. Sin token, backend y frontend siguen verdes y Sonar se omite.
+CI (tests en cada push) y esqueleto de SonarCloud: [docs/ci-sonar.md](docs/ci-sonar.md).
 
 ## Persistencia
 
@@ -77,6 +75,7 @@ Con backend y frontend ya arriba.
 | --- | --- |
 | [Arquitectura](docs/arquitectura.md) | Cómo está armado el hexágono, SSE, SQLite y testing |
 | [Gobernanza de IA](docs/ia.md) | Skill, agente reviewer, bitácora y rechazos |
+| [CI y SonarCloud](docs/ci-sonar.md) | GitHub Actions (tests) y esqueleto de análisis del backend |
 | [README del backend](apps/backend/README.md) | Contrato HTTP, códigos de error, paquetes `domain` / `application` / `infrastructure` / `interfaces` |
 | [README del frontend](apps/frontend/README.md) | Signals, REST vs SSE, árbol de `features/goals` |
 
