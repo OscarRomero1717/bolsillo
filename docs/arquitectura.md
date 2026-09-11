@@ -1,57 +1,70 @@
-# Arquitectura — Bolsillo de Ahorro Programado
+# Arquitectura
 
-Documento de decisiones. Se completa durante el desarrollo; los títulos de la prueba quedan fijos.
+Un proceso Spring Boot (hexagonal lean) y Angular aparte. Un aggregate: `Goal`. La regla `current + amount ≤ target` vive en `Goal.contribute()`, no en el controller ni en SQL.
 
-## Contexto
+Por qué así: hay **un invariante que no puede mezclarse con el framework** y **dos detalles que sí cambian** (hoy SQLite, mañana Postgres; hoy SSE). El dominio no importa Spring ni JPA. Habla por puertos (`GoalRepository`, `GoalEventPublisher`). Un monolito alcanza: un usuario, un flujo, un deploy. Layered Spring metería la regla en un `@Service`; microservicios o Kafka serían teatro para un abono.
 
-Aplicación de un solo bounded context: metas de ahorro (`Goal`) y abonos. Un usuario de demo. Sin autenticación en el alcance.
+```mermaid
+flowchart LR
+  subgraph angular [Angular]
+    UI[Dashboard / forms / diálogo]
+    Store[GoalStore]
+    Api[GoalApi]
+    SseCli[GoalSse]
+    UI --> Store
+    Store --> Api
+    Store --> SseCli
+  end
 
-## Arquitectura seleccionada
+  subgraph interfaces_layer [interfaces]
+    REST[GoalController]
+    Stream["GET /api/goals/stream"]
+  end
 
-Modular monolith hexagonal lean (opción B).
+  subgraph application_layer [application]
+    UC[Use cases]
+  end
 
-Un aggregate `Goal`. El dominio no depende de Spring ni de JPA. Persistencia SQLite y SSE son adapters.
+  subgraph domain_layer [domain]
+    Goal[Goal.contribute]
+    Ports[Puertos]
+    Goal --> Ports
+  end
 
-Diagrama: pendiente (fase de implementación).
+  subgraph infra [infrastructure]
+    JPA[JPA adapter]
+    Pub[Event publisher]
+    Hub[SseHub]
+    DB[(SQLite)]
+    JPA --> DB
+  end
 
-## ¿Por qué elegí esta arquitectura?
+  Api -->|REST| REST
+  SseCli -->|SSE| Stream
+  REST --> UC
+  Stream --> Hub
+  UC --> Goal
+  Ports --> JPA
+  Ports --> Pub
+  Pub --> Hub
+```
 
-Pendiente de redacción final. Eje: un invariante (`current + amount ≤ target`) y dos volatilidades (cómo se guarda, cómo se notifica).
-
-## ¿Qué alternativas descarté?
-
-- **A — Layered Spring clásico:** las reglas quedarían en un `@Service` acoplado al framework.
-- **C — Microservicios / broker:** un solo flujo de abono no justifica un límite de proceso.
-
-## ¿Qué trade-offs asumí?
-
-- SQLite archivo vs Postgres (sin Docker; el puerto `GoalRepository` deja el swap).
-- REST + SSE vs WebSocket (el cliente ya escribe por HTTP).
-- Sin OAuth/JWT (no hay HU de identidad).
-- SSE sin outbox (si falla el push, el abono ya persistió).
-
-## ¿Cómo se aíslan las reglas de negocio del framework y la infraestructura?
-
-Las reglas viven en `Goal.contribute()`. El paquete `domain` no importa Spring ni JPA. Los tests de dominio lo demuestran.
-
-## Patrones
-
-- Repository
-- Domain Event / Observer
-- Adapter
+Flujo: REST → use case → `Goal` → `save` → `publish`. El aviso no sale del use case: evento de dominio → listener → `SseHub` → `EventSource`. El `@Entity` es DTO de tabla; el aggregate se reconstruye con `Goal.rehydrate`.
 
 ## Tiempo real
 
-REST para comandos. SSE para `goal-updated` y `goal-completed`.
+Comandos por REST (`POST /api/goals`, `POST .../contributions`). Avisos por SSE (`GET /api/goals/stream`: `goal-updated`, `goal-completed`). SSE es un tubo servidor→browser; el cliente ya escribe por HTTP, así que WebSocket no aporta. El diálogo de 100% se abre con `goal-completed` del stream, no con el JSON del POST: las dos pestañas se enteran igual. Si el push falla, el abono **ya** está persistido (sin outbox: se puede perder el aviso, no el dinero).
 
-## Persistencia
+## Persistencia y BD
 
-SQLite. Esquema en `schema.sql` (incluye `CHECK`). JPA es adapter, no dueño del modelo.
+SQLite en `apps/backend/data/bolsillo.db` (sin Docker). Esquema en `schema.sql` (`ddl-auto: none`): `NUMERIC` para montos, `CHECK` de `current ≤ target` y `status IN ('OPEN','COMPLETED')`. El CHECK no sustituye a `Goal`; es red de seguridad. `data.sql` siembra dos metas. UUID lo asigna el dominio antes del INSERT. `@Version` en JPA: choque concurrente → 409. El puerto deja cambiar a Postgres sin tocar `contribute()`.
 
 ## Testing
 
-Dominio primero (sin Spring). Luego MockMvc y tests de componentes Angular.
+Tres capas, de adentro hacia afuera:
 
-## Seguridad (alcance de la prueba)
+1. **Dominio** (`GoalContributeTest`): JUnit, sin Spring. Ahí se ve el invariante.
+2. **HTTP** (MockMvc): un método por caso — 201, seed, abono 200, 0/negativo 400, restante/`COMPLETED` 422, cierre al 100%, concurrencia (un 200 y el otro 409 o 422, `current ≤ target`).
+3. **Angular**: los cuatro del enunciado en `enunciado.spec.ts` (dashboard, abono inválido sin POST, % de la card, diálogo al `goal-completed`).
 
-Bean Validation, excepciones Problem Details, CORS a localhost, sin stack traces en el body. Sin JWT.
+Eso prueba contratos y reglas. No prueba que “el invariante esté en el JSON”.
