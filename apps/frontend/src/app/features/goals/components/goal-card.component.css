@@ -1,0 +1,35 @@
+.card {
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  max-width: 28rem;
+}
+
+.card h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+}
+
+.status {
+  margin: 0 0 0.75rem;
+  color: #57606a;
+  font-size: 0.9rem;
+}
+
+.bar {
+  height: 0.6rem;
+  background: #eaeef2;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: #1a7f37;
+  border-radius: 999px;
+}
+
+.percent {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+}

@@ -1,0 +1,10 @@
+<article class="card">
+  <h2>{{ goal().name }}</h2>
+  <p class="status">{{ goal().status === 'COMPLETED' ? 'Completada' : 'Abierta' }}</p>
+  <p>Objetivo: ${{ goal().targetAmount | number: '1.0-0' }}</p>
+  <p>Acumulado: ${{ goal().currentAmount | number: '1.0-0' }}</p>
+  <div class="bar" [attr.aria-valuenow]="goal().progressPercent" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+    <div class="fill" [style.width.%]="goal().progressPercent"></div>
+  </div>
+  <p class="percent">{{ goal().progressPercent }}%</p>
+</article>

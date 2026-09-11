@@ -1,0 +1,21 @@
+<section>
+  <h2>Tus metas</h2>
+
+  @if (loading()) {
+    <p>Cargando metas…</p>
+  }
+
+  @if (error(); as message) {
+    <p class="error">{{ message }}</p>
+  }
+
+  @if (!loading() && !error() && goals().length === 0) {
+    <p>no hay metas</p>
+  }
+
+  <div class="grid">
+    @for (goal of goals(); track goal.id) {
+      <app-goal-card [goal]="goal" />
+    }
+  </div>
+</section>
